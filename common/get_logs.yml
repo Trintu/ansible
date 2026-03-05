@@ -9,29 +9,26 @@
       register: output
 
     - name: Extract ms from logs
-      shell: |
-        echo "{{ log_lines.stdout }}" | grep -oP 'took \K[0-9]+'
+      shell:  |
+        echo "{{ output.stdout }}" | grep -oP 'took \K[0-9]+'
       register: milliseconds
       delegate_to: localhost
 
     - name: Send ms to temp file
       copy:
         content: "{{ milliseconds.stdout }}"
-        dest: ""
+        dest: "./temp/ms_{{ inventory_hostname }}.txt"
+      delegate_to: localhost
+
+    - name: Calculate stats
+      shell:  |
+        ./stats.py < ./temp/ms_{{ inventory_hostname }}.txt
+      register: server_stats
+      delegate_to: localhost
 
     - name: Log output
       debug:
         msg: 
           - "Server: {{ inventory_hostname }}"
           - "Last 20 log entries:"
-          - "{{ output.stdout_lines }}"
-
-    - name: Save results to local file
-      delegate_to: localhost
-      copy:
-        content: |
-          ========================================
-          Server: {{ inventory_hostname }}
-          ========================================
-          {{ output.stdout }}
-        dest: "./logs/{{ inventory_hostname }}.txt"
+          - "{{ server_stats.stdout_lines }}"
