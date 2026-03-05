@@ -1,7 +1,10 @@
 ---
 - name: Grabbing logs
   hosts: quiz
-  
+  vars:
+    temp_dir: /etc/Projects/ansible/temp
+    output_dir: /etc/Projects/ansible/output
+    ansible_home: /etc/Projects/ansible
   tasks:
     - name: Grab last 20 lines from inventory logs
       shell: |
@@ -17,12 +20,12 @@
     - name: Send ms to temp file
       copy:
         content: "{{ milliseconds.stdout }}"
-        dest: "./temp/ms_{{ inventory_hostname }}.txt"
+        dest: "{{ temp_dir }}/ms_{{ inventory_hostname }}.txt"
       delegate_to: localhost
 
     - name: Calculate stats
       shell:  |
-        ./stats.py < ./temp/ms_{{ inventory_hostname }}.txt
+        {{ ansible_home }}/stats.py < {{ temp_dir }}/ms_{{ inventory_hostname }}.txt
       register: server_stats
       delegate_to: localhost
 
@@ -32,3 +35,9 @@
           - "Server: {{ inventory_hostname }}"
           - "Last 20 log entries:"
           - "{{ server_stats.stdout_lines }}"
+
+    - name: Also sending to output file
+      copy:
+        content: "{{ server_stats.stdout_lines }}"
+        dest: "{{ output_dir }}/ms_{{ inventory_hostname }}.txt"
+      delegate_to: localhost
