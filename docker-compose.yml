@@ -1,0 +1,15 @@
+services:
+  ansible-stats:
+    build: .
+    image: stats:latest
+    container_name: ansible-stats
+    volumes:
+      #Mount SSH Keys
+      - /root/.ssh:/root/.ssh:ro
+      # Mount output directory to persist results
+      - ./output:/ansible/output
+    environment:
+      - ANSIBLE_HOST_KEY_CHECKING=False
+    # Example: docker-compose run ansible-stats fetch_logs_calculate_stats.yml
+    entrypoint: []
+    command: ["ansible-playbook", "--version"]

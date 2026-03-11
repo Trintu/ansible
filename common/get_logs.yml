@@ -2,9 +2,9 @@
 - name: Grabbing logs
   hosts: quiz
   vars:
-    temp_dir: /etc/Projects/ansible/temp
-    output_dir: /etc/Projects/ansible/output
-    ansible_home: /etc/Projects/ansible
+    temp_dir: /ansible/temp
+    output_dir: /ansible/output
+    ansible_home: /ansible
     log_location: /var/log/ultradns-quiz-madeup.log
   tasks:
     - name: Grab last 30 lines from inventory logs
