@@ -24,7 +24,7 @@ RUN mkdir -p /ansible/playbooks && \
     mkdir -p /root/.ssh && \
     chmod 700 /root/.ssh
 
-COPY get_logs.yml /ansible/common
+COPY get_logs.yml /ansible
 COPY quiz.ini /ansible
 COPY stats.py /ansible
 

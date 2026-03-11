@@ -1,0 +1,46 @@
+---
+- name: Grabbing logs
+  hosts: quiz
+  vars:
+    temp_dir: /ansible/temp
+    output_dir: /ansible/output
+    ansible_home: /ansible
+    log_location: /var/log/ultradns-quiz-madeup.log
+  tasks:
+    - name: Grab last 30 lines from inventory logs
+      shell:  |
+        #Grabbing 30 due to that pesky blank entry
+        grep 'Ultradns quiz application took' {{ log_location }} |tail -30 | nl -v 1   
+      register: output
+
+    - name: Extract ms from logs
+      shell:  |
+        #pulling out the last 20 real values
+        echo "{{ output.stdout }}" | grep -oP 'took \K[0-9]+' | tail -20
+      register: milliseconds
+      delegate_to: localhost
+
+    - name: Send ms to temp file
+      copy:
+        content: "{{ milliseconds.stdout }}"
+        dest: "{{ temp_dir }}/ms_{{ inventory_hostname }}.txt"
+      delegate_to: localhost
+
+    - name: Calculate stats
+      shell:  |
+        {{ ansible_home }}/stats.py < {{ temp_dir }}/ms_{{ inventory_hostname }}.txt
+      register: server_stats
+      delegate_to: localhost
+
+    - name: Log output
+      debug:
+        msg: 
+          - "Server: {{ inventory_hostname }}"
+          - "Last 20 log entries:"
+          - "{{ server_stats.stdout_lines }}"
+   
+    - name: Also sending to output file
+      copy:
+        content: "{{ server_stats.stdout }}"
+        dest: "{{ output_dir }}/ms_{{ inventory_hostname }}.txt"
+      delegate_to: localhost 
